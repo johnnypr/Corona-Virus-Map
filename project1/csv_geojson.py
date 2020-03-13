@@ -1,14 +1,49 @@
 import sys
 import pandas as pd
+import json
 
-def main(csvPath,output=None):
-    if output=="":
-        output = csvPath.replace(".csv",".json")
-    jsonFile = pd.read_csv(csvPath)
-    jsonFile = jsonFile.to_json(output)
+
+
+def to_geoJson(jsonData):
+    
+
+    csv = pd.read_csv(jsonData)
+
+    print(type(csv))
+
+    jsonObj = csv.to_dict()
+
+    print(type(jsonObj))
+
+    jsonObj = json.dumps(jsonObj)
+
+    jsonObj = json.loads(jsonObj)
+
+    
+    print(jsonObj.keys())
+#     geojson = {
+#     "type": "FeatureCollection",
+#     "features": [
+#     {
+#         "type": "Feature",
+#         "geometry" : {
+#             "type": "Point",
+#             "coordinates": [d["Lon"], d["Lat"]],
+#             },
+#         "properties" : {
+#             "Province/State" : d["Province/State"],
+#         "Country/Region": d["Country/Region"],
+#         "ConfirmedCases": d["Total"]
+
+#         }
+#      } for d in jsonObj.keys()]
+# }
+
+
+    output = open('corona_cases.geojson', 'w')
+    json.dump(geojson, output)
+
+
 
 if __name__ == "__main__":
-    csv = sys.argv[1]
-    output = str(input("Enter the filename for the geoJson: "))
-    main(csv,output)
-    
+    to_geoJson("datasets\data-preview.csv")
