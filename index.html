@@ -1,126 +1,232 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta name="description" content="LA/CRP 458/558 Leaflet starter file -     2020">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
-        <title>Project 1</title>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
+<head>
+	
+	<title>Exercise 9</title>
 
-        <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
-   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
-   crossorigin=""></script>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+    <script src="project1\datasets\confirmed_cases.geojson" type="text/javascript"></script>
+	<script src="project1\datasets\corona_states.geojson" type="text/javascript"></script>
+	<script src="project1\datasets\map.geojson" type="text/javascript"></script>
+
+
+
+
+	<style>
+		
+        html, body {
+			height: 100%;
+			margin: 0;
+		}
+		 .navbar {
+			background-color: #333;
+			overflow: hidden;
+			}
+		.navbar a {
+			float: left;
+			font-size: 16px;
+			color: white;
+			text-align: center;
+		}
+		.dropdown .dropbtn {
+			font-size: 16px;  
+			color: white;
+			background-color: inherit;
+		}
+		.dropdown-content {
+			display: none;
+			position: absolute;
+			background-color: #f9f9f9;
+			min-width: 140px;
+		}
+
+		.dropdown-content a {
+			float: none;
+			color: black;
+			text-align: left;
+		}
+
+		.dropdown-content a:hover {
+			background-color: #ddd;
+		}
+
+		.dropdown:hover .dropdown-content {
+			display: block;
+		}
+		
+        #map { 
+            width: 800px; 
+            height: 500px; }
         
-        <script src="project1\datasets\data.json" type="text/javascript"></script>
-  
-       
-        <style>
-             .navbar {
-  background-color: #333;
-    overflow: hidden;
+    </style>
+
+</head>
+
+<body>
+<div class="navbar">
+     <a href="../index.html">Home</a>
+     <div class="dropdown">
+         <button class="dropbtn">Dropdown
+             <i class="fa fa-caret-down"></i>
+         </button>
+         <div class="dropdown-content">
+             <a href="../exercise1/index.html">Exercise 1</a>
+             <a href="../exercise2/index.html">Exercise 2</a>
+             <a href="https://github.com/tressahobbs/LA458/blob/master/exercise3/dams.geojson">Exercise 3</a>
+             <a href="../exercise4/index.html">Exercise 4</a>
+             <a href="../assignment1/index.html">Assignment 1</a>
+             <a href="../exercise5/index.html">Exercise 5</a>
+             <a href="../exercise6/index.html">Exercise 6</a>
+             <a href="../exercise7/index.html">Exercise 7</a>
+			 <a href="../exercise8/index.html">Exercise 8</a>
+			 <a href="../exercise9/index.html">Exercise 9</a>
+
+         </div>
+     </div>
+ </div>
+
+<div id='map' class="leaflet-container" style="position: relative;"></div>
+
+
+
+<script>
+
+	var stamenURL = 'http://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.{ext}';
+	var stamenAttrib = 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+	var map = L.map('map').setView([37.8, -96], 4);
+
+
+	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+		maxZoom: 18,
+		id: 'mapbox/streets-v11',
+		// This is a unique access token, you must register for your own from https://account.mapbox.com/access-tokens/
+		tileSize: 512,
+		zoomOffset: -1,
+		accessToken: 'pk.eyJ1IjoidGhvYmJzMTM4MCIsImEiOiJjazdhb3YwdTgxNjlzM2V0ZnR6NHNkazcwIn0.WVYTFK32EocERM3viqwa6Q'
+	}).addTo(map);
+
+	L.geoJson(coronaStates).addTo(map);
+
+	// get color depending on number of confirmed cases density value
+	function getColor(d) {
+    return d > 200 ? '#800026' :
+           d > 70  ? '#BD0026' :
+           d > 50  ? '#E31A1C' :
+           d > 20  ? '#FC4E2A' :
+           d > 10   ? '#FD8D3C' :
+           d > 5   ? '#FEB24C' :
+           d < 0 ? '#FED976' :
+                      '#FFEDA0';
 }
-.navbar a {
-  float: left;
-  font-size: 16px;
-  color: white;
-  text-align: center;
-}
-.dropdown .dropbtn {
-  font-size: 16px;  
-  color: white;
-  background-color: inherit;
-}
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  min-width: 140px;
-}
 
-.dropdown-content a {
-  float: none;
-  color: black;
-  text-align: left;
-}
+    
+	function style(feature) {
+		return {
+			weight: 2,
+			opacity: 1,
+			color: 'white',
+            dashArray: '3',
+			fillOpacity: 0.7,
+			fillColor: getColor(feature.properties.density)
 
-.dropdown-content a:hover {
-  background-color: #ddd;
-}
+		};
+	}
 
-.dropdown:hover .dropdown-content {
-  display: block;
-}
-            #map {
-                width: 700px;
-                height: 500px;
-            }
-        </style>
-    </head>
+	function highlightFeature(e) {
+		var layer = e.target;
 
-        
-        <div id='map'></div>
-        
-        <script>
+		layer.setStyle({
+			weight: 2,
+			color: 'black',
+			dashArray: '',
+			fillOpacity: 0.7
+		});
 
-          var jsonFeatures = [];
+		if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+			layer.bringToFront();
+		}
 
-          cases.forEach(function(point){
-              var lat = point.Lat;
-              var lon = point.Long;
+	}
 
-              var feature = {type: 'Feature',
-                  properties: point,
-                  geometry: {
-                      type: 'Point',
-                      coordinates: [lon,lat]
-                  }
-              };
+	
 
-              jsonFeatures.push(feature);
-          });
+	function resetHighlight(e) {
+		geojson.resetStyle(e.target);
+	}
 
-          var geoJson = { type: 'FeatureCollection', features: jsonFeatures };
-              
+	function zoomToFeature(e) {
+		map.fitBounds(e.target.getBounds());
+	}
+
+	function onEachFeature(feature, layer) {
+		layer.on({
+			mouseover: highlightFeature,
+			mouseout: resetHighlight,
+			click: zoomToFeature
+		});
+	}
+
+	var geojson = L.geoJson(coronaStates, {
+		style: style,
+		onEachFeature: onEachFeature
+	}).addTo(map);
 
 
-            var map = L.map('map').setView([39.8283, -98.5795], 2);
-        
-            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-            maxZoom: 18,
-            id: 'mapbox/streets-v11',
-            accessToken:'pk.eyJ1IjoidGhvYmJzMTM4MCIsImEiOiJjazc4Mm8zZDAwNXQ2M2V0Y2xtMXk1c2Q4In0.uX0jerjoicgCDZ4AcEyMxQ'
-            }).addTo(map);
+	var confirmed_cases = L.geoJson(cases,{pointToLayer: function(feature,latlng){
+        return new L.CircleMarker(latlng,{
+            radius: 4,
+            color: '#0066cc'
+        }).addTo(map);
+    }
+    });
+    
 
-            //cases
-            L.geoJson(geoJson).addTo(map);
-
-            function getColor(d) {
-              return d > 1000 ? '#800026' :
-                     d > 500  ? '#BD0026' :
-                     d > 200  ? '#E31A1C' :
-                     d > 100  ? '#FC4E2A' :
-                     d > 50   ? '#FD8D3C' :
-                     d > 20   ? '#FEB24C' :
-                     d > 10   ? '#FED976' :
-                                '#FFEDA0';
-            }
-            function style(feature) {
-              return {
-                  fillColor: getColor(feature.properties.density),
-                  weight: 2,
-                  opacity: 1,
-                  color: 'white',
-                  dashArray: '3',
-                  fillOpacity: 0.7
-              };
-            }
+	var stamenMap = L.tileLayer(stamenURL, {
+    attribution: stamenAttrib,
+    subdomains: 'abcd',
+    minZoom: 0,
+    maxZoom: 20,
+    ext: 'png'
+});
 
 
-            
 
-            
-     
-        </script>
-    </body>
+var baseLayers = {
+  "geojson": coronaStates,
+  "cases": confirmed_cases,
+  "stamenMap": stamenMap
+};
+L.control.layers(baseLayers).addTo(map);
+
+var legend = L.control({position: 'bottomright'});
+
+L.control.layers(baseLayers).addTo(map);
+
+legend.onAdd = function(map){
+    var div = L.DomUtil.create('div','info legend'),
+    degree = [0,10,25,40,70,100,200]
+    labels =[]
+    for(var i = 0; i < degree.length; i++){
+        div.innerHTML += '<i style="background:' + getColor(degree[i]+1) + '"></i>'+ degree[i] + (degree[i+1] ? '&ndash;' + degree[i+1] + '<br>':'+');
+    }
+        return div;
+    };
+
+
+	
+
+	
+	
+
+
+
+   
+</script>
+
+</body>
 </html>
